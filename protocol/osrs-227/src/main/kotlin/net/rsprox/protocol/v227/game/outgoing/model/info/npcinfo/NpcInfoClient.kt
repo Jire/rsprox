@@ -114,6 +114,7 @@ internal class NpcInfoClient(
                             npc.steps,
                             npc.moveSpeed,
                             extendedInfo,
+                            npc.jump,
                         )
                 }
             }
@@ -601,7 +602,7 @@ internal class NpcInfoClient(
     ) {
         val x = buffer.g2Alt1()
         val z = buffer.g2Alt2()
-        val instant = buffer.g1Alt1() == 1
+        val instant = buffer.g1Alt2() == 1
         blocks += FaceCoordExtendedInfo(x, z, instant)
     }
 
@@ -625,6 +626,7 @@ internal class NpcInfoClient(
             if (hasUpdate == 0) {
                 transmittedNPC[transmittedNPCCount++] = index
                 npc.lastTransmitCycle = cycle
+                npc.clearMovement()
                 updates[index] = UpdateType.IDLE
                 continue
             }
@@ -635,6 +637,7 @@ internal class NpcInfoClient(
                     npc.lastTransmitCycle = cycle
                     extraUpdateNPC[extraUpdateNPCCount++] = index
                     updates[index] = UpdateType.ACTIVE
+                    npc.clearMovement()
                 }
                 1 -> {
                     transmittedNPC[transmittedNPCCount++] = index
@@ -678,6 +681,7 @@ internal class NpcInfoClient(
                     updates[index] = UpdateType.ACTIVE
                 }
                 3 -> {
+                    npc.clearMovement()
                     deletedNPC[deletedNPCCount++] = index
                     updates[index] = UpdateType.HIGH_RESOLUTION_TO_LOW_RESOLUTION
                 }
@@ -786,6 +790,11 @@ internal class NpcInfoClient(
             coord = CoordGrid(baseCoord.level, baseCoord.x + relativeX, baseCoord.z + relativeZ)
             moveSpeed = MoveSpeed.STATIONARY
             this.jump = jump
+        }
+
+        fun clearMovement() {
+            this.moveSpeed = MoveSpeed.STATIONARY
+            this.jump = false
         }
 
         fun addRouteWaypointAdjacent(

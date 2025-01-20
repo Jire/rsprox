@@ -130,6 +130,7 @@ import net.rsprox.protocol.game.outgoing.model.info.shared.extendedinfo.TintingE
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV1
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV2
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV3
+import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV4
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfClearInv
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfCloseSub
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfMoveSub
@@ -210,19 +211,7 @@ import net.rsprox.protocol.game.outgoing.model.worldentity.SetActiveWorld
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZoneFullFollows
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialEnclosed
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialFollows
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAddChange
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocMerge
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapProjAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjAdd
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCount
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjEnabledOps
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjUncustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.SoundArea
+import net.rsprox.protocol.game.outgoing.model.zone.payload.*
 import net.rsprox.shared.BaseVarType
 import net.rsprox.shared.ScriptVarType
 import net.rsprox.shared.indexing.BinaryIndex
@@ -576,6 +565,9 @@ public class IndexerTranscriber(
     }
 
     override fun worldEntityInfoV3(message: WorldEntityInfoV3) {
+    }
+
+    override fun worldEntityInfoV4(message: WorldEntityInfoV4) {
     }
 
     override fun ifClearInv(message: IfClearInv) {
@@ -1075,7 +1067,7 @@ public class IndexerTranscriber(
     override fun updateZonePartialEnclosed(message: UpdateZonePartialEnclosed) {
         for (update in message.packets) {
             when (update) {
-                is LocAddChange -> {
+                is LocAddChangeV1 -> {
                     binaryIndex.increment(IndexedType.LOC, update.id)
                 }
                 is LocAnim -> {
@@ -1114,7 +1106,11 @@ public class IndexerTranscriber(
     override fun updateZonePartialFollows(message: UpdateZonePartialFollows) {
     }
 
-    override fun locAddChange(message: LocAddChange) {
+    override fun locAddChangeV1(message: LocAddChangeV1) {
+        binaryIndex.increment(IndexedType.LOC, message.id)
+    }
+
+    override fun locAddChangeV2(message: LocAddChangeV2) {
         binaryIndex.increment(IndexedType.LOC, message.id)
     }
 

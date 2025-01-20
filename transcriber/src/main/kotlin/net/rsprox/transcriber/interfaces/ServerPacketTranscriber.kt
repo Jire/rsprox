@@ -31,6 +31,7 @@ import net.rsprox.protocol.game.outgoing.model.info.npcinfo.SetNpcUpdateOrigin
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV1
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV2
 import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV3
+import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV4
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfClearInv
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfCloseSub
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfMoveSub
@@ -112,19 +113,7 @@ import net.rsprox.protocol.game.outgoing.model.worldentity.SetActiveWorld
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZoneFullFollows
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialEnclosed
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialFollows
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAddChange
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocMerge
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapProjAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjAdd
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCount
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjEnabledOps
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjUncustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.SoundArea
+import net.rsprox.protocol.game.outgoing.model.zone.payload.*
 
 public interface ServerPacketTranscriber {
     public fun camLookAt(message: CamLookAt)
@@ -188,6 +177,8 @@ public interface ServerPacketTranscriber {
     public fun worldEntityInfoV2(message: WorldEntityInfoV2)
 
     public fun worldEntityInfoV3(message: WorldEntityInfoV3)
+
+    public fun worldEntityInfoV4(message: WorldEntityInfoV4)
 
     public fun ifClearInv(message: IfClearInv)
 
@@ -381,7 +372,9 @@ public interface ServerPacketTranscriber {
 
     public fun updateZonePartialFollows(message: UpdateZonePartialFollows)
 
-    public fun locAddChange(message: LocAddChange)
+    public fun locAddChangeV1(message: LocAddChangeV1)
+
+    public fun locAddChangeV2(message: LocAddChangeV2)
 
     public fun locAnim(message: LocAnim)
 

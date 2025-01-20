@@ -168,7 +168,6 @@ public class TextPlayerInfoTranscriber(
     }
 
     override fun playerInfo(message: PlayerInfo) {
-        sessionState.clearTempMoveSpeeds()
         // Log any activities that happened for all the players
         logPlayerInfo(message)
     }
@@ -186,7 +185,7 @@ public class TextPlayerInfoTranscriber(
                         }
                         is PlayerUpdateType.HighResolutionIdle -> {
                             if (update.extendedInfo.isEmpty()) {
-                                return@group
+                                continue
                             }
                             val player = sessionState.getPlayer(index)
                             group("IDLE") {

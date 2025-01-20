@@ -34,11 +34,7 @@ import net.rsprox.protocol.game.outgoing.model.friendchat.UpdateFriendChatChanne
 import net.rsprox.protocol.game.outgoing.model.friendchat.UpdateFriendChatChannelSingleUser
 import net.rsprox.protocol.game.outgoing.model.info.npcinfo.SetNpcUpdateOrigin
 import net.rsprox.protocol.game.outgoing.model.info.playerinfo.util.PlayerInfoInitBlock
-import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfo
-import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV1
-import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV2
-import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityInfoV3
-import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.WorldEntityUpdateType
+import net.rsprox.protocol.game.outgoing.model.info.worldentityinfo.*
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfClearInv
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfCloseSub
 import net.rsprox.protocol.game.outgoing.model.interfaces.IfMoveSub
@@ -139,63 +135,16 @@ import net.rsprox.protocol.game.outgoing.model.worldentity.SetActiveWorld
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZoneFullFollows
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialEnclosed
 import net.rsprox.protocol.game.outgoing.model.zone.header.UpdateZonePartialFollows
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAddChange
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.LocMerge
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.MapProjAnim
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjAdd
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCount
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjCustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjDel
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjEnabledOps
-import net.rsprox.protocol.game.outgoing.model.zone.payload.ObjUncustomise
-import net.rsprox.protocol.game.outgoing.model.zone.payload.SoundArea
+import net.rsprox.protocol.game.outgoing.model.zone.payload.*
 import net.rsprox.protocol.game.outgoing.model.zone.payload.util.CoordInBuildArea
 import net.rsprox.protocol.reflection.ReflectionCheck
 import net.rsprox.shared.ScriptVarType
 import net.rsprox.shared.filters.PropertyFilter
 import net.rsprox.shared.filters.PropertyFilterSet
 import net.rsprox.shared.filters.PropertyFilterSetStore
-import net.rsprox.shared.property.ChildProperty
-import net.rsprox.shared.property.NamedEnum
-import net.rsprox.shared.property.Property
-import net.rsprox.shared.property.PropertyFormatterCollection
-import net.rsprox.shared.property.RootProperty
-import net.rsprox.shared.property.any
-import net.rsprox.shared.property.boolean
-import net.rsprox.shared.property.com
-import net.rsprox.shared.property.coordGridProperty
-import net.rsprox.shared.property.createScriptVarType
-import net.rsprox.shared.property.enum
-import net.rsprox.shared.property.filteredBoolean
-import net.rsprox.shared.property.filteredInt
-import net.rsprox.shared.property.filteredLong
-import net.rsprox.shared.property.filteredNamedEnum
-import net.rsprox.shared.property.filteredString
-import net.rsprox.shared.property.formattedInt
-import net.rsprox.shared.property.group
-import net.rsprox.shared.property.identifiedMultinpc
-import net.rsprox.shared.property.identifiedNpc
-import net.rsprox.shared.property.identifiedPlayer
-import net.rsprox.shared.property.identifiedWorldEntity
-import net.rsprox.shared.property.int
-import net.rsprox.shared.property.inter
-import net.rsprox.shared.property.list
-import net.rsprox.shared.property.long
-import net.rsprox.shared.property.namedEnum
+import net.rsprox.shared.property.*
 import net.rsprox.shared.property.regular.ScriptVarTypeProperty
 import net.rsprox.shared.property.regular.ZoneCoordProperty
-import net.rsprox.shared.property.script
-import net.rsprox.shared.property.scriptVarType
-import net.rsprox.shared.property.string
-import net.rsprox.shared.property.unidentifiedNpc
-import net.rsprox.shared.property.unidentifiedPlayer
-import net.rsprox.shared.property.unidentifiedWorldEntity
-import net.rsprox.shared.property.varbit
-import net.rsprox.shared.property.varp
-import net.rsprox.shared.property.zoneCoordGrid
 import net.rsprox.shared.settings.Setting
 import net.rsprox.shared.settings.SettingSet
 import net.rsprox.shared.settings.SettingSetStore
@@ -917,6 +866,10 @@ public class TextServerPacketTranscriber(
         worldEntityInfo(message)
     }
 
+    override fun worldEntityInfoV4(message: WorldEntityInfoV4) {
+        return worldEntityInfo(message)
+    }
+
     private fun worldEntityInfo(message: WorldEntityInfo) {
         if (!filters[PropertyFilter.WORLDENTITY_INFO]) return omit()
         val group =
@@ -1403,7 +1356,7 @@ public class TextServerPacketTranscriber(
                     val key = iterator.next()
                     group {
                         int("mapsquareid", mapsquareId)
-                        string("key", key.key.contentToString())
+                        any("key", key.key.contentToString())
                     }
                 }
             }
@@ -1430,7 +1383,7 @@ public class TextServerPacketTranscriber(
                     val key = iterator.next()
                     group {
                         int("mapsquareid", mapsquareId)
-                        string("key", key.key.contentToString())
+                        any("key", key.key.contentToString())
                     }
                 }
             }
@@ -1460,6 +1413,7 @@ public class TextServerPacketTranscriber(
                             zoneCoord("source", block.level, block.zoneX, block.zoneZ)
                             zoneCoord("dest", level, zoneX, zoneZ)
                             int("rotation", block.rotation)
+                            filteredInt("firstbit", block.packed and 0x1, 0)
                         }
                     }
                 }
@@ -1471,7 +1425,7 @@ public class TextServerPacketTranscriber(
                 val key = iterator.next()
                 group {
                     int("mapsquareid", mapsquareId)
-                    string("key", key.key.contentToString())
+                    any("key", key.key.contentToString())
                 }
             }
         }
@@ -1521,7 +1475,7 @@ public class TextServerPacketTranscriber(
                 val key = iterator.next()
                 group {
                     int("mapsquareid", mapsquareId)
-                    string("key", key.key.contentToString())
+                    any("key", key.key.contentToString())
                 }
             }
         }
@@ -1597,11 +1551,12 @@ public class TextServerPacketTranscriber(
         root.int("requestid", message.requestId)
         when (val type = message.response) {
             is HiscoreReply.FailedHiscoreReply -> {
-                root.string("type", "failure")
+                root.any("type", "failure")
                 root.string("reason", type.reason)
             }
             is HiscoreReply.SuccessfulHiscoreReply -> {
-                root.string("type", "success")
+                root.any("type", "success")
+                root.int("version", type.version)
                 root.group("OVERALL") {
                     group {
                         int("rank", type.overallRank)
@@ -2478,10 +2433,15 @@ public class TextServerPacketTranscriber(
     private fun createFakeZoneProts(packets: List<IncomingZoneProt>) {
         for (event in packets) {
             when (event) {
-                is LocAddChange -> {
+                is LocAddChangeV1 -> {
                     if (!filters[PropertyFilter.LOC_ADD_CHANGE]) continue
-                    val root = sessionState.createFakeServerRoot("LOC_ADD_CHANGE")
-                    root.buildLocAddChange(event)
+                    val root = sessionState.createFakeServerRoot("LOC_ADD_CHANGE_V1")
+                    root.buildLocAddChangeV1(event)
+                }
+                is LocAddChangeV2 -> {
+                    if (!filters[PropertyFilter.LOC_ADD_CHANGE]) continue
+                    val root = sessionState.createFakeServerRoot("LOC_ADD_CHANGE_V2")
+                    root.buildLocAddChangeV2(event)
                 }
                 is LocAnim -> {
                     if (!filters[PropertyFilter.LOC_ANIM]) continue
@@ -2554,10 +2514,16 @@ public class TextServerPacketTranscriber(
         root.apply {
             for (event in packets) {
                 when (event) {
-                    is LocAddChange -> {
+                    is LocAddChangeV1 -> {
                         if (!filters[PropertyFilter.LOC_ADD_CHANGE]) continue
-                        group("LOC_ADD_CHANGE") {
-                            buildLocAddChange(event)
+                        group("LOC_ADD_CHANGE_V1") {
+                            buildLocAddChangeV1(event)
+                        }
+                    }
+                    is LocAddChangeV2 -> {
+                        if (!filters[PropertyFilter.LOC_ADD_CHANGE]) continue
+                        group("LOC_ADD_CHANGE_V2") {
+                            buildLocAddChangeV2(event)
                         }
                     }
                     is LocAnim -> {
@@ -2642,9 +2608,14 @@ public class TextServerPacketTranscriber(
         root.coordGrid(buildAreaCoordGrid(message.zoneX, message.zoneZ, message.level))
     }
 
-    override fun locAddChange(message: LocAddChange) {
+    override fun locAddChangeV1(message: LocAddChangeV1) {
         if (!filters[PropertyFilter.LOC_ADD_CHANGE]) return omit()
-        root.buildLocAddChange(message)
+        root.buildLocAddChangeV1(message)
+    }
+
+    override fun locAddChangeV2(message: LocAddChangeV2) {
+        if (!filters[PropertyFilter.LOC_ADD_CHANGE]) return omit()
+        root.buildLocAddChangeV2(message)
     }
 
     override fun locAnim(message: LocAnim) {
@@ -2704,11 +2675,24 @@ public class TextServerPacketTranscriber(
         return sessionState.getActiveWorld().relativizeZoneCoord(xInZone, zInZone)
     }
 
-    private fun Property.buildLocAddChange(message: LocAddChange) {
+    private fun Property.buildLocAddChangeV1(message: LocAddChangeV1) {
         scriptVarType("id", ScriptVarType.LOC, message.id)
         coordGrid(coordInZone(message.xInZone, message.zInZone))
         scriptVarType("shape", ScriptVarType.LOC_SHAPE, message.shape)
         int("rotation", message.rotation)
+    }
+
+    private fun Property.buildLocAddChangeV2(message: LocAddChangeV2) {
+        scriptVarType("id", ScriptVarType.LOC, message.id)
+        coordGrid(coordInZone(message.xInZone, message.zInZone))
+        scriptVarType("shape", ScriptVarType.LOC_SHAPE, message.shape)
+        int("rotation", message.rotation)
+        val ops = message.ops
+        if (ops != null) {
+            for ((k, v) in ops) {
+                string("op${k.inc()}", v)
+            }
+        }
     }
 
     private fun Property.buildLocAnim(message: LocAnim) {
@@ -2798,7 +2782,7 @@ public class TextServerPacketTranscriber(
     private fun Property.buildObjAdd(message: ObjAdd) {
         scriptVarType("id", ScriptVarType.OBJ, message.id)
         formattedInt("count", message.quantity)
-        filteredString("opflags", "0b" + message.opFlags.value.toString(2), "0b11111")
+        filteredAny("opflags", "0b" + message.opFlags.value.toString(2), "0b11111")
         filteredInt("reveal", message.timeUntilPublic, 0)
         filteredInt("despawn", message.timeUntilDespawn, 0)
         filteredNamedEnum("ownership", getObjOwnership(message.ownershipType), ObjOwnership.None)
@@ -2821,7 +2805,7 @@ public class TextServerPacketTranscriber(
 
     private fun Property.buildObjEnabledOps(message: ObjEnabledOps) {
         scriptVarType("id", ScriptVarType.OBJ, message.id)
-        string("opflags", "0b" + message.opFlags.value.toString(2))
+        any("opflags", "0b" + message.opFlags.value.toString(2))
         coordGrid(coordInZone(message.xInZone, message.zInZone))
     }
 
