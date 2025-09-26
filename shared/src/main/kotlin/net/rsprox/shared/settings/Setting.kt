@@ -93,21 +93,6 @@ public enum class Setting(
         false,
         "Hides the index property in player info logs for all players.",
     ),
-    PLAYER_REMOVAL(
-        SettingGroup.LOGGING,
-        SettingCategory.PLAYER_INFO,
-        "Player Removal",
-        false,
-        "Whether to log players being being removed from your view.",
-    ),
-    PLAYER_INFO_HIDE_INACTIVE_PLAYERS(
-        SettingGroup.LOGGING,
-        SettingCategory.PLAYER_INFO,
-        "Hide Inactive Players",
-        true,
-        "Hides any players who do not have an active extended info block applied. " +
-            "This will hide players that are moving if they do not have extended info applied.",
-    ),
     PLAYER_INFO_HIDE_EMPTY(
         SettingGroup.LOGGING,
         SettingCategory.PLAYER_INFO,
@@ -135,21 +120,6 @@ public enum class Setting(
         "Hide NPC Indices",
         false,
         "Hides the index property in NPC info logs for all NPCs.",
-    ),
-    NPC_REMOVAL(
-        SettingGroup.LOGGING,
-        SettingCategory.NPC_INFO,
-        "Npc Removal",
-        false,
-        "Whether to log NPCs being being removed from your view.",
-    ),
-    NPC_INFO_HIDE_INACTIVE_NPCS(
-        SettingGroup.LOGGING,
-        SettingCategory.NPC_INFO,
-        "Hide Inactive NPCs",
-        true,
-        "Hides any NPCs who do not have an active extended info block applied. " +
-            "This will hide NPCs that are moving if they do not have extended info applied.",
     ),
     NPC_INFO_HIDE_EMPTY(
         SettingGroup.LOGGING,
