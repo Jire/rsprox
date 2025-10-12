@@ -22,8 +22,9 @@ import io.netty.handler.codec.http.QueryStringDecoder
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.util.CharsetUtil
+import net.rsprox.gui.dialogs.ErrorDialog
+import java.net.BindException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 public class AuthHttpServer {
     private var bootstrap: ServerBootstrap? = null
@@ -53,16 +54,27 @@ public class AuthHttpServer {
                 )
             }
         this.bootstrap = bootstrap
-        bootstrap.bind(80).sync()
-
-        bootstrap.config().childGroup().schedule({
-            stop()
-        }, 5, TimeUnit.MINUTES)
+        try {
+            bootstrap.bind(80).sync()
+        } catch (e: BindException) {
+            val notif =
+                when (e.message) {
+                    null -> "Unknown"
+                    "Permission denied" -> "Must have root access to bind port 80"
+                    "Address already in use" -> "Port 80 already in use"
+                    "Address already in use: bind" -> "Port 80 already in use"
+                    else -> e.message
+                }
+            ErrorDialog.show("Jagex Account", "Unable to start Jagex Account HTTP Server:\n$notif")
+            throw e
+        }
     }
 
     public fun stop() {
         val bootstrap = bootstrap ?: return
-
+        logger.debug {
+            "Shutting down Jagex Account HTTP server."
+        }
         bootstrap.config().group().shutdownGracefully()
         bootstrap.config().childGroup().shutdownGracefully()
 
@@ -97,6 +109,7 @@ public class AuthHttpServer {
         ) {
             if (request.method() != HttpMethod.GET) {
                 sendErrorResponse(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED)
+                shutDownHttpServer()
                 return
             }
             val query = QueryStringDecoder(request.uri(), CharsetUtil.UTF_8)
@@ -146,8 +159,10 @@ public class AuthHttpServer {
                             """.trimIndent(),
                     ),
                 )
+                shutDownHttpServer()
             } else {
                 sendErrorResponse(ctx, HttpResponseStatus.NOT_FOUND)
+                shutDownHttpServer()
             }
         }
 
@@ -156,6 +171,10 @@ public class AuthHttpServer {
             status: HttpResponseStatus,
         ) {
             ctx.writeAndFlush(status)
+        }
+
+        private fun shutDownHttpServer() {
+            stop()
         }
     }
 

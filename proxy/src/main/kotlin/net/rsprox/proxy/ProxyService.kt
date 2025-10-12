@@ -3,7 +3,9 @@ package net.rsprox.proxy
 import com.github.michaelbull.logging.InlineLogger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
+import net.rsprot.buffer.extensions.toJagByteBuf
 import net.rsprox.patch.NativeClientType
 import net.rsprox.patch.PatchResult
 import net.rsprox.patch.native.NativePatchCriteria
@@ -152,6 +154,7 @@ public class ProxyService(
         check(results.all { it.get() }) {
             "Unable to boot RSProx"
         }
+        recategorizeBinaries(progressCallback)
         this.proxyTargets = this.proxyTargets.filter(ProxyTarget::isSuccessfullyLoaded)
     }
 
@@ -193,6 +196,7 @@ public class ProxyService(
                 revision = null,
                 runeliteBootstrapCommitHash = null,
                 runeliteGamepackUrl = null,
+                binaryFolder = "Old School RuneScape",
             )
         try {
             val path = if (PROXY_TARGETS_FILE.exists()) PROXY_TARGETS_FILE else ALT_PROXY_TARGETS_FILE
@@ -231,6 +235,12 @@ public class ProxyService(
                 "Revision in jav-config mismatches with supplied revision: $revision vs $revisionString"
             }
         }
+        val binaryFolder =
+            if (!exportBinaries) {
+                null
+            } else {
+                binaryFolder ?: name
+            }
         return ProxyTargetConfig(
             id = index + 1,
             name = this.name,
@@ -240,6 +250,7 @@ public class ProxyService(
             revision = this.revision,
             runeliteBootstrapCommitHash = commitHash,
             runeliteGamepackUrl = gamepackUrl,
+            binaryFolder = binaryFolder,
         )
     }
 
@@ -262,6 +273,7 @@ public class ProxyService(
             230 -> "34a480a260a68aaeb8d505b8c2cf17d8fbed9c30"
             231 -> "8d2e0c60ecec85cffd7a84196aabf4effde55132"
             232 -> "89ed5837e047eeaa3d5528f6b684f0264d9d5a60"
+            233 -> "cea91b9921a3647683ba8a5c22ec75c752c91b07"
             else -> null
         }
     }
@@ -296,6 +308,68 @@ public class ProxyService(
         userHash: Long,
     ) {
         this.credentials.append(BinaryCredentials(name, userId, userHash))
+    }
+
+    private fun recategorizeBinaries(progressCallback: ProgressCallback) {
+        val binaries =
+            BINARY_PATH
+                .walk()
+                .filter { it.isRegularFile(LinkOption.NOFOLLOW_LINKS) }
+                .filter { it.extension == "bin" }
+                .filter { it.parent == BINARY_PATH }
+                .toList()
+        if (binaries.isEmpty()) {
+            return
+        }
+        progressCallback.update(95.0, "Proxy", "Loading binary headers")
+        logger.info {
+            "Re-categorizing ${binaries.size} x binary file."
+        }
+
+        val dummyUserUid = UserUid(0, 0)
+        val dummyHash = dummyUserUid.hash
+        var loadCount = 0
+
+        for (path in binaries) {
+            val buf = Unpooled.wrappedBuffer(path.readBytes()).toJagByteBuf()
+            try {
+                progressCallback.update(
+                    95.0,
+                    "Proxy",
+                    "Re-categorizing binary headers",
+                    "${++loadCount}/${binaries.size}",
+                )
+                val header = BinaryHeader.decode(buf)
+
+                val isDummy = header.accountHash.contentEquals(dummyHash)
+                // Use some relatively naive heuristics to re-categorize the binaries
+                // Any future binaries will be placed according to the proxy target's name used.
+                val directory =
+                    when {
+                        header.worldId >= 300 && !isDummy -> {
+                            "Old School RuneScape"
+                        }
+                        !isDummy -> {
+                            "Unknown"
+                        }
+                        else -> {
+                            "Private Server"
+                        }
+                    }
+                val newPath = BINARY_PATH.resolve(directory).resolve(path.fileName)
+                newPath.createDirectories()
+                path.moveTo(newPath, overwrite = true)
+
+                val transcript = path.resolveSibling("${path.nameWithoutExtension}.txt")
+                if (transcript.exists(LinkOption.NOFOLLOW_LINKS)) {
+                    val newTranscript = BINARY_PATH.resolve(directory).resolve(transcript.fileName)
+                    transcript.moveTo(newTranscript, overwrite = true)
+                }
+            } catch (_: Exception) {
+                // Assume the file isn't a binary, but just another .bin file;
+                // headers should never fail to decode.
+            }
+        }
     }
 
     private fun transferFakeCertificate() {
